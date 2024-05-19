@@ -1,25 +1,30 @@
 <script lang="ts" setup>
+import { debounce } from "lodash-es";
 // Columns
 const columns = [
   {
     key: "id",
     label: "#",
-    sortable: true,
   },
   {
     key: "name",
     label: "Name",
-    sortable: true,
+  },
+  {
+    key: "email",
+    label: "Email",
+  },
+  {
+    key: "phone",
+    label: "phone",
   },
   {
     key: "address",
     label: "Address",
-    sortable: true,
   },
   {
     key: "actions",
     label: "Actions",
-    sortable: false,
   },
 ];
 
@@ -105,73 +110,58 @@ async function createUser() {
   });
   isOpen.value = false;
 }
+
+const useId = ref();
+const isOpenDeleteDialog = ref(false);
 async function deleteUser(id: number) {
+  useId.value = id;
+  isOpenDeleteDialog.value = true;
+}
+async function confirmDeleteUser() {
   await $fetch(`http://127.0.0.1:8000/api/users/${id}`, { method: "delete" });
+  isOpenDeleteDialog.value = false;
+  users.value = users.value.filters((item: any) => item.id !== useId.value);
+}
+async function editUser(id: number) {
+  const { data } = await $fetch<{ data: any }>(
+    `http://127.0.0.1:8000/api/users/${id}`
+  );
+  userPayload.value = data;
+  isOpen.value = true;
 }
 
 onMounted(async () => await fetchUser());
 
 watch(page, fetchUser);
+watch(
+  search,
+  debounce(() => {
+    page.value = 1;
+    fetchUser();
+  }, 300)
+);
 </script>
 
 <template>
-  <!-- Create user form -->
-  <UModal v-model="isOpen">
-    <UCard
-      :ui="{
-        ring: '',
-        divide: 'divide-y divide-gray-100 dark:divide-gray-800',
-      }"
-    >
-      <template #header>
-        <Placeholder class="h-8">Create User</Placeholder>
-      </template>
-
-      <Placeholder>
-        <UInput
-          v-model="userPayload.name"
-          name="name"
-          class="mb-5"
-          variant="outline"
-          placeholder="Name"
-        />
-        <UInput
-          v-model="userPayload.phone"
-          name="phone"
-          class="mb-5"
-          variant="outline"
-          placeholder="Phone"
-        />
-        <UInput
-          v-model="userPayload.email"
-          name="email"
-          class="mb-5"
-          variant="outline"
-          placeholder="Email"
-        />
-        <UInput
-          v-model="userPayload.password"
-          name="password"
-          class="mb-5"
-          variant="outline"
-          placeholder="Password"
-        />
-        <UInput
-          v-model="userPayload.address"
-          name="address"
-          class="mb-5"
-          variant="outline"
-          placeholder="Address"
-        />
-      </Placeholder>
-
+  <UModal v-model="isOpenDeleteDialog" :overlay="false">
+    <UCard>
+      <div class="p-4">
+        <Placeholder class="h-48">Are your sure want to delete?</Placeholder>
+      </div>
       <template #footer>
-        <Placeholder>
-          <UButton label="Save" @click="createUser" />
-        </Placeholder>
+        <div class="grid gap-4 grid-cols-2">
+          <UButton label="No" @click="isOpenDeleteDialog = false" />
+          <UButton color="red" label="Yes" @click="confirmDeleteUser" />
+        </div>
       </template>
     </UCard>
   </UModal>
+  <!-- Create user form -->
+  <UserCreateOrUpdate
+    v-model="isOpen"
+    v-model:entity="userPayload"
+    @saved="fetchUser()"
+  />
   <!-- End create user form -->
   <UCard
     class="w-full"
@@ -194,7 +184,6 @@ watch(page, fetchUser);
           v-model="search"
           icon="i-heroicons-magnifying-glass-20-solid"
           placeholder="Search..."
-          @blur="fetchUser"
         />
         <UButton label="Create" @click="isOpen = true" />
       </div>
@@ -247,7 +236,7 @@ watch(page, fetchUser);
       sort-asc-icon="i-heroicons-arrow-up"
       sort-desc-icon="i-heroicons-arrow-down"
       sort-mode="manual"
-      class="w-full"
+      class="h-[calc(100vh - 210px)]"
     >
       <template #actions-data="{ row }">
         <UButton
@@ -257,7 +246,17 @@ watch(page, fetchUser);
           variant="outline"
           :ui="{ rounded: 'rounded-full' }"
           square
+          class="mr-1"
           @click="deleteUser(row.id)"
+        />
+        <UButton
+          icon="i-heroicons-pencil"
+          size="2xs"
+          color="orange"
+          variant="outline"
+          :ui="{ rounded: 'rounded-full' }"
+          square
+          @click="editUser(row.id)"
         />
       </template>
     </UTable>

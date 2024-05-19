@@ -10,11 +10,17 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@chantouchsek/validatorjs": "^2.1.2",
     "@nuxt/ui": "^2.15.2",
     "@pinia/nuxt": "^0.5.1",
+    "lodash-es": "^4.17.21",
     "nuxt": "^3.11.2",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",
     "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
+    "@vue-macros/nuxt": "^1.9.32"
   }
 }

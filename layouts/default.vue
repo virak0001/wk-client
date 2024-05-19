@@ -17,7 +17,7 @@ const menus = [
 <template>
   <div class="bg-slate-200 h-full">
     <div
-      class="bg-white h-16 flex justify-center items-center gap-10 text-slate-800 drop-shadow"
+      class="bg-white h-16 flex justify-center items-center gap-10 text-slate-800 mb-5"
     >
       <UIcon class="text-2xl text-blue-800" name="i-heroicons-book-open" />
       <NuxtLink
@@ -28,8 +28,8 @@ const menus = [
         >{{ menu.title }}</NuxtLink
       >
     </div>
-    <div class="pa-1">
+    <UContainer class="pa-10">
         <slot />
-    </div>
+    </UContainer>
   </div>
 </template>
